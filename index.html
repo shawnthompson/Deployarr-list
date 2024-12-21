@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Media Server Apps Tracker</title>
+		<!-- Bootstrap CSS -->
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+		<style>
+			body {
+				margin: 20px;
+			}
+
+			h1,
+			h2 {
+				color: #333;
+			}
+
+			.form-check-label {
+				margin-left: 12px;
+				font-size: 1.2rem;
+				/* Larger label font size */
+				color: #000;
+				/* High contrast black color for text */
+			}
+
+			.form-check-input {
+				width: 1.5rem;
+				/* Larger checkbox size */
+				height: 1.5rem;
+				/* Larger checkbox size */
+				margin-top: 0.3rem;
+				/* Align with label */
+				accent-color: #007bff;
+				/* High contrast blue checkbox color */
+			}
+
+			.category {
+				margin-bottom: 30px;
+			}
+
+			.description {
+				font-size: 1rem;
+				/* Slightly larger font size for description */
+				color: #666;
+				margin-left: 36px;
+				/* Indent to align with the checkbox label */
+			}
+
+			.search-bar {
+				margin-bottom: 20px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="container">
+			<h1 class="mb-4">Media Server Apps Tracker</h1>
+
+			<!-- Search Bar -->
+			<input type="text" id="search" class="form-control search-bar" placeholder="Search apps by name or description..." oninput="filterList()">
+
+			<div id="app-list"></div>
+		</div>
+
+		<!-- Bootstrap JS Bundle -->
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+		<script>
+			const apps = {
+				"Reverse Proxy": [
+					{ name: "Traefik", description: "A modern HTTP reverse proxy and load balancer that makes deploying microservices easy." },
+					{ name: "Traefik Access Logs", description: "Pass Traefik Access Logs to Dozzle" },
+					{ name: "Traefik Error Logs", description: "Pass Traefik Error Logs to Dozzle" },
+					{ name: "Traefik Certs Dumper", description: "A tool to dump Traefik's certificates to disk." }
+				],
+				"Media Servers and Players": [
+					{ name: "Plex", description: "A media server that organizes video, music, and photos from personal media libraries and streams them to smart TVs, streaming boxes, and mobile devices." },
+					{ name: "Jellyfin", description: "An open-source media server that allows you to manage and stream your media." },
+					{ name: "Emby", description: "A media server to organize and stream your personal media." },
+					{ name: "Airsonic-Advanced", description: "A free, web-based media streamer providing ubiquitous access to your music." },
+					{ name: "Navidrome", description: "A self-hosted music server and streamer." },
+					{ name: "Lollypop", description: "A modern music player for GNOME." },
+					{ name: "Funkwhale", description: "A modern, self-hosted, web-based music server." },
+					{ name: "Gonic", description: "A self-hosted music server." }
+				],
+				"Media Management": [
+					{ name: "Radarr", description: "A movie collection manager for Usenet and BitTorrent users." },
+					{ name: "Sonarr", description: "A PVR for Usenet and BitTorrent users to manage TV series." },
+					{ name: "Lidarr", description: "A music collection manager for Usenet and BitTorrent users." },
+					{ name: "Readarr", description: "A book collection manager for Usenet and BitTorrent users." },
+					{ name: "Bazarr", description: "A companion application to Sonarr and Radarr that manages and downloads subtitles." },
+					{ name: "Jackett", description: "A proxy server that translates queries from apps like Sonarr and Radarr into tracker-site-specific HTTP queries." },
+					{ name: "Maintainerr", description: "A tool for managing and maintaining your Docker containers." },
+					{ name: "Jellyseerr", description: "A companion app for Jellyfin to manage requests." },
+					{ name: "Ombi", description: "A self-hosted media request and management system." },
+					{ name: "Overseerr", description: "A request management and media discovery tool for your media server." },
+					{ name: "Tautulli", description: "A monitoring and tracking tool for Plex Media Server." },
+					{ name: "Prowlarr", description: "An indexer manager/proxy for managing your indexers across various applications." },
+					{ name: "Kometa", description: "Plex Meta Manager that can create automatic collections based on defined criteria. " },
+					{ name: "Notifiarr", description: "A notification service for media server applications. Client for Notifiarr.com." }
+				],
+				"Downloaders": [
+					{ name: "NZBGet", description: "A Usenet downloader optimized for performance and efficiency." },
+					{ name: "SABnzbd", description: "A Usenet downloader optimized for performance and efficiency." },
+					{ name: "qBittorrent", description: "An open-source BitTorrent client without VPN integration." },
+					{ name: "Transmission", description: "A fast, easy, and free BitTorrent client without VPN integration." },
+					{ name: "qBittorrent with VPN", description: "An open-source BitTorrent client with Gluetun VPN Client integration." }
+				],
+				"Network Tools": [
+					{ name: "Wireguard", description: "A simple, fast, and modern VPN that utilizes state-of-the-art cryptography." },
+					{ name: "Gluetun", description: "A VPN client in a thin Docker container for multiple VPN providers." },
+					{ name: "WG-Easy", description: "A web UI for WireGuard." },
+					{ name: "DDNS Updater", description: "A tool to update dynamic DNS records." },
+					{ name: "Tailscale", description: "A zero-config VPN that connects your devices using WireGuard." },
+					{ name: "ZeroTier", description: "A zero-config VPN that connects your devices using WireGuard." }
+				],
+				"Monitoring": [
+					{ name: "Uptime-Kuma", description: "A self-hosted monitoring tool like \"Uptime Robot\"." },
+					{ name: "Netdata", description: "Real-time performance monitoring for systems and applications." },
+					{ name: "Grafana", description: "An open-source platform for monitoring and observability." },
+					{ name: "cAdvisor", description: "Analyzes and exposes resource usage and performance data from running containers." },
+					{ name: "Dozzle", description: "A real-time log viewer for Docker containers." },
+					{ name: "Dozzle Agent", description: "Enable remote log viewing for Docker containers." },
+					{ name: "Scrutiny", description: "A web UI for smartd S.M.A.R.T monitoring." },
+					{ name: "Speedtest-Tracker", description: "A self-hosted internet speed tracking application." },
+					{ name: "Smokeping", description: "A latency monitoring tool." },
+					{ name: "Glances", description: "A cross-platform monitoring tool for systems." },
+					{ name: "Change Detection", description: "A tool for monitoring web pages for changes." },
+					{ name: "Node Exporter", description: "A Prometheus exporter for hardware and OS metrics exposed by *NIX kernels." }
+				],
+				"Security ": [
+					{ name: "Authelia", description: "An authentication and authorization server providing 2-factor authentication and single sign-on (SSO)." },
+					{ name: "Socket Proxy", description: "A configurable proxy for Docker Socket." },
+					{ name: "OAuth", description: "OAuth login from several providers, including Google OAuth 2.0." },
+					{ name: "CrowdSec", description: "An open-source and collaborative security solution." },
+					{ name: "CrowdSec Firewall Bouncer", description: "A CrowdSec bouncer for blocking IPs in your firewall." }
+				],
+				"Dashboards": [
+					{ name: "Homepage", description: "A simple, standalone homepage for your server." },
+					{ name: "Flame", description: "A self-hosted start page for your server." },
+					{ name: "Dashy", description: "A self-hosted dashboard for managing your server." },
+					{ name: "Heimdall", description: "An application dashboard for organizing your web applications." },
+					{ name: "Homarr", description: "A sleek, modern dashboard for managing your home server." },
+					{ name: "Organizr", description: "A web-based tool that makes organizing your server applications simple." }
+				],
+				"Reading": [
+					{ name: "Kavita", description: "A self-hosted digital library management system." },
+					{ name: "Calibre-Web", description: "A web app providing a clean interface for browsing, reading, and downloading eBooks." },
+					{ name: "Calibre", description: "A powerful and easy-to-use e-book manager." },
+					{ name: "Komga", description: "A media server for comics/mangas/BDs with a web-based reader." },
+					{ name: "Mylar3", description: "An automated Comic Book downloader (cbr/cbz) for use with SABnzbd, NZBGet, and torrents." },
+					{ name: "FreshRSS", description: "A self-hosted RSS feed aggregator." }
+				],
+				"Databases": [
+					{ name: "Prometheus", description: "A monitoring system and time series database." },
+					{ name: "MariaDB", description: "A community-developed fork of MySQL, intended to remain free under the GNU GPL." },
+					{ name: "PostgreSQL", description: "A powerful, open-source object-relational database system." },
+					{ name: "Redis", description: "An in-memory data structure store, used as a database, cache, and message broker." },
+					{ name: "InfluxDB", description: "An open-source time series database." },
+					{ name: "Adminer", description: "A full-featured database management tool written in PHP." },
+					{ name: "PgAdmin", description: "A web-based administration tool for PostgreSQL." },
+					{ name: "phpMyAdmin", description: "A free software tool written in PHP, intended to handle the administration of MySQL over the web." },
+					{ name: "Redis Commander", description: "A web-based management tool for Redis." }
+				],
+				"Smart Home and Automation": [
+					{ name: "Home Assistant Core", description: "An open-source home automation platform. Core version (no Add-on support)." },
+					{ name: "Homebridge", description: "A lightweight Node.js server that emulates the iOS HomeKit API." },
+					{ name: "Mosquitto", description: "An open-source message broker that implements the MQTT protocol." },
+					{ name: "MQTTX Web", description: "A web-based MQTT 5.0 client tool." },
+					{ name: "ESPHome", description: "A system to control ESP8266/ESP32 by simple yet powerful configuration files and control them remotely through Home Automation systems." },
+					{ name: "Node-RED", description: "A flow-based development tool for visual programming." }
+				],
+				"Photo Management": [
+					{ name: "Piwigo", description: "A photo gallery software for the web." },
+					{ name: "DigiKam", description: "A professional photo management application." },
+					{ name: "Photoshow", description: "A simple photo gallery application." }
+				],
+				"Docker Management": [
+					{ name: "Portainer", description: "A lightweight management UI which allows you to easily manage your Docker environments." },
+					{ name: "Docker Garbage Collection", description: "A tool for cleaning up unused Docker containers, images, and volumes." },
+					{ name: "DeUnhealth", description: "A tool to monitor and manage the health of your Docker containers." },
+					{ name: "Dockwatch", description: "A monitoring tool for Docker containers." },
+					{ name: "What's Up Docker (WUD)", description: "A tool to monitor and update your Docker containers." },
+					{ name: "DweebUI", description: "A customizable web-based user interface for managing various Docker applications." }
+				],
+				"File Management": [
+					{ name: "Nextcloud", description: "A suite of client-server software for creating and using file hosting services." },
+					{ name: "Visual Studio Code Server", description: "A cloud-hosted version of Visual Studio Code." },
+					{ name: "Cloud Commander", description: "A web-based file manager with console and editor." },
+					{ name: "Double Commander", description: "A cross-platform open-source file manager with two panels side by side." }
+				],
+				"Admin Tools": [
+					{ name: "IT-Tools", description: "A collection of useful tools for IT professionals." },
+					{ name: "ShellInABox", description: "HTML5 web-based Linux Terminal." },
+					{ name: "CyberChef", description: "A web app for encryption, encoding, compression, and data analysis." },
+					{ name: "GPTWOL", description: "Wake On LAN Docker GUI." }
+				],
+				"Remote Access": [
+					{ name: "Guacamole", description: "A clientless remote desktop gateway." },
+					{ name: "Chromium", description: "An open-source web browser project." },
+					{ name: "Kasm", description: "A web-based workspace / remote desktop solution." },
+					{ name: "Remmina", description: "A remote desktop client written in GTK." }
+				],
+				"Social ": [
+					{ name: "The Lounge", description: "A self-hosted web IRC client." }
+				],
+				"Password Management": [
+					{ name: "Vaultwarden", description: "A lightweight, self-hosted password manager." }
+				],
+				"Other Utilities": [
+					{ name: "Resilio Sync", description: "A fast, reliable file and folder synchronization tool." },
+					{ name: "Baikal", description: "A lightweight CalDAV+CardDAV server." },
+					{ name: "Grocy", description: "A web-based self-hosted groceries and household management solution." },
+					{ name: "Flaresolverr", description: "A proxy server to bypass Cloudflare protection." },
+					{ name: "Theme Park", description: "A tool for creating and managing themes for various applications." },
+					{ name: "Stirling PDF", description: "A self-hosted PDF manipulation tool." }
+				]
+			};
+
+    const appListContainer = document.getElementById("app-list");
+    let appCounter = 1;
+
+    function createCheckbox(id, label, description, counter) {
+      const listItem = document.createElement("div");
+      listItem.className = "form-check app-item";
+      listItem.setAttribute("data-name", label.toLowerCase());
+      listItem.setAttribute("data-description", description.toLowerCase());
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "form-check-input";
+      checkbox.id = id;
+      checkbox.checked = localStorage.getItem(id) === "true";
+      checkbox.addEventListener("change", () => {
+        localStorage.setItem(id, checkbox.checked);
+      });
+
+      const labelElement = document.createElement("label");
+      labelElement.className = "form-check-label";
+      labelElement.htmlFor = id;
+      labelElement.textContent = `${counter}. ${label}`;
+
+      const descriptionElement = document.createElement("div");
+      descriptionElement.className = "description";
+      descriptionElement.textContent = description;
+
+      listItem.appendChild(checkbox);
+      listItem.appendChild(labelElement);
+      listItem.appendChild(descriptionElement);
+      return listItem;
+    }
+
+    function renderApps() {
+      appListContainer.innerHTML = "";
+      appCounter = 1;
+
+      Object.keys(apps).forEach((category) => {
+        const categoryDiv = document.createElement("div");
+        categoryDiv.classList.add("category");
+
+        const heading = document.createElement("h2");
+        heading.textContent = category;
+        heading.className = "text-primary";
+        categoryDiv.appendChild(heading);
+
+        apps[category].forEach((app) => {
+          categoryDiv.appendChild(createCheckbox(app.name, app.name, app.description, appCounter));
+          appCounter++;
+        });
+
+        appListContainer.appendChild(categoryDiv);
+      });
+
+      const totalApps = document.createElement("h2");
+      totalApps.textContent = `Total Apps: ${appCounter - 1}`;
+      totalApps.className = "text-success mt-4";
+      appListContainer.appendChild(totalApps);
+    }
+
+    function filterList() {
+      const query = document.getElementById("search").value.toLowerCase();
+      const items = document.querySelectorAll(".app-item");
+
+      items.forEach((item) => {
+        const name = item.getAttribute("data-name");
+        const description = item.getAttribute("data-description");
+
+        if (name.includes(query) || description.includes(query)) {
+          item.style.display = "block";
+        } else {
+          item.style.display = "none";
+        }
+      });
+    }
+
+    renderApps();
+  </script>
+</body>
+
+</html>
